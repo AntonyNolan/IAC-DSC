@@ -54,12 +54,12 @@
 
         }
 
-        cDNSServerAddress DnsServerAddress
+        xDNSServerAddress DnsServerAddress
         {
             Address        = $Node.DNSIPAddress
             InterfaceAlias = 'Ethernet'
             AddressFamily  = 'IPV4'
-        }        
+        }         
         
         WindowsFeature ADDSTools            
         {             
