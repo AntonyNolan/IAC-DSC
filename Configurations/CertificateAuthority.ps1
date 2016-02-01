@@ -1,7 +1,7 @@
 ﻿Configuration CertificateAuthority
 {        
 
-    Import-DscResource -ModuleName xAdcsDeployment,PSDesiredStateConfiguration,xNetworking,xComputerManagement,xTimeZone
+    Import-DscResource -ModuleName xAdcsDeployment,PSDesiredStateConfiguration,xNetworking,xComputerManagement,xTimeZone,cNetworking
     
     Node $AllNodes.Where{$_.Role -eq "PKI"}.Nodename
     {  
@@ -22,6 +22,8 @@
             xComputer NewName {
                 Name = $Node.MachineName
                 DomainName = $Node.DomainName
+                Credential = $Node.Credential
+                DependsOn = '[cDNSServerAddress]DnsServerAddress'
             }
         }
         xIPAddress NewIPAddress
@@ -42,55 +44,60 @@
 
         }
         
-        xDNSServerAddress DnsServerAddress
+        cDNSServerAddress DnsServerAddress
         {
             Address        = $Node.DNSIPAddress
             InterfaceAlias = 'Ethernet'
             AddressFamily  = 'IPV4'
         }
-                        
-        WindowsFeature ADCS-Cert-Authority
-        {
+        
+        WindowsFeature ADCS-Cert-Authority {
                Ensure = 'Present'
                Name = 'ADCS-Cert-Authority'
         }
-        xADCSCertificationAuthority ADCS
-        {
+
+        WindowsFeature RSAT-ADCS {
+            Ensure = 'Present'
+            Name = 'RSAT-ADCS'
+            IncludeAllSubFeature = $true
+            DependsOn = '[WindowsFeature]ADCS-Cert-Authority'
+        }
+        
+        xADCSCertificationAuthority ADCS {
             Ensure = 'Present'
             Credential = $Node.Credential
             CAType = 'EnterpriseRootCA'
             DependsOn = '[WindowsFeature]ADCS-Cert-Authority'              
         }
-        WindowsFeature ADCS-Web-Enrollment
-        {
+        
+        WindowsFeature ADCS-Web-Enrollment {
             Ensure = 'Present'
             Name = 'ADCS-Web-Enrollment'
             DependsOn = '[WindowsFeature]ADCS-Cert-Authority'
         }
-        xADCSWebEnrollment CertSrv
-        {
+        
+        xADCSWebEnrollment CertSrv {
             Ensure = 'Present'
             Name = 'CertSrv'
             Credential = $Node.Credential
             DependsOn = '[WindowsFeature]ADCS-Web-Enrollment','[xADCSCertificationAuthority]ADCS'
-        } 
+        }         
     }  
 }
 
-$DNSArray = @('192.168.2.2')
 
 $ConfigData = @{             
     AllNodes = @(             
         @{             
-            Nodename = 'Localhost'          
+            Nodename = $env:COMPUTERNAME          
             MachineName = 'ZCert01'
             Role = "PKI"             
-            DomainName = "Zephyr.org"
+            DomainName = "Zephyr"
             PsDscAllowPlainTextPassword = $true
             PSDscAllowDomainUser = $true
             IPAddress = '192.168.2.3'
             DefaultGateway = '192.168.2.1'
-            DNSIPAddress = $DNSArray
+            DNSIPAddress = '192.168.2.2'
             Credential = (Get-Credential -UserName 'zephyr\administrator' -message 'Enter admin pwd')
         }                      
     )             
