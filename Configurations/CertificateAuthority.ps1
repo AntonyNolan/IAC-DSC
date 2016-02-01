@@ -26,6 +26,7 @@
                 DependsOn = '[cDNSServerAddress]DnsServerAddress'
             }
         }
+
         xIPAddress NewIPAddress
         {
             IPAddress      = $Node.IPAddress
