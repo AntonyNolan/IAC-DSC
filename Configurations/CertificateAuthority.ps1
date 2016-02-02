@@ -82,6 +82,12 @@
             Name = 'CertSrv'
             Credential = $Node.Credential
             DependsOn = '[WindowsFeature]ADCS-Web-Enrollment','[xADCSCertificationAuthority]ADCS'
+        }
+        
+        WindowsFeature Web-Mgmt-Console {
+            Ensure = 'Present'
+            Name = 'Web-Mgmt-Console'
+            IncludeAllSubFeature = $true            
         }         
     }  
 }

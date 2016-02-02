@@ -6,3 +6,4 @@ function Export-Resources ($ISOPath, $VMName)
    Invoke-Command -VMName $VMName -ScriptBlock {Copy-Item -Path D:\* -Recurse -Destination "$env:ProgramFiles\WindowsPowerShell\Modules" -Force}
 }
 
+Export-Resources -ISOPath 'C:\Users\Duffney\Documents\GitHub\DSC_LabAsCode\DSCResources.iso' -VMName 'ZPull01'
