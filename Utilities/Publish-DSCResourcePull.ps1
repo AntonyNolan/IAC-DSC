@@ -1,4 +1,4 @@
-funciton Publish-DSCResourcePull {
+function Publish-DSCResourcePull {
 Param(
     [string[]]
     $Module
