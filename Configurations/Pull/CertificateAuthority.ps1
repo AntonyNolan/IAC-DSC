@@ -50,8 +50,8 @@ Configuration CertificateAuthority
             Name = 'DSC - Remote Desktop Admin Connection'
             DisplayGroup = 'Remote Desktop'
             Ensure = 'Present'
-            State = 'Enabled'
-            Access = 'Allow'
+            Enabled = $true
+            Action = 'Allow'
             Profile = 'Domain'
         }
         
