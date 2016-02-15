@@ -17,13 +17,6 @@ Configuration SQL {
 
     Node $AllNodes.Where{$_.Role -eq "SQL"}.Nodename {
         
-        LocalConfigurationManager            
-        {            
-            ActionAfterReboot = 'ContinueConfiguration'            
-            ConfigurationMode = 'ApplyAndAutoCorrect'            
-            RebootNodeIfNeeded = $true            
-        }          
-        
         xTimeZone SystemTimeZone {
             TimeZone = 'Central Standard Time'
             IsSingleInstance = 'Yes'
