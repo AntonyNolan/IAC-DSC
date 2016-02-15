@@ -8,12 +8,12 @@ Configuration SQL {
         [string]$DomaniName
     )
     
-    Import-DscResource –ModuleName PSDesiredStateConfiguration
-    Import-DscResource -Module cNetworking
-    Import-DscResource -Module xNetworking
-    Import-DscResource -Module xComputerManagement
-    Import-DscResource -Module xTimeZone
-    Import-DscResource -Module xRemoteDesktopAdmin
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
+    Import-DscResource -ModuleName cNetworking
+    Import-DscResource -ModuleName xNetworking
+    Import-DscResource -ModuleName xComputerManagement
+    Import-DscResource -ModuleName xTimeZone
+    Import-DscResource -ModuleName xRemoteDesktopAdmin
 
     Node $AllNodes.Where{$_.Role -eq "SQL"}.Nodename {
         
