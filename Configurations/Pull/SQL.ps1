@@ -76,7 +76,7 @@ Configuration SQL {
 $ConfigData = @{             
     AllNodes = @(             
         @{             
-            Nodename = $env:COMPUTERNAME
+            Nodename = 'ZSQL01'
             MachineName = 'ZSQL01'
             Role = "SQL"
             DomainName = "Zephyr"
@@ -90,7 +90,18 @@ $ConfigData = @{
     )             
 }
 
-SQL -ConfigurationData $ConfigData
+SQL -ConfigurationData $ConfigData -OutputPath c:\dsc\sql
 
-Set-DscLocalConfigurationManager -Path .\SQL -Verbose -Force
-Start-DscConfiguration -Path .\SQL -Wait -Force -Verbose
+
+$cim = New-CimSession -ComputerName zsql01
+$guid=Get-DscLocalConfigurationManager -CimSession $cim| Select-Object -ExpandProperty ConfigurationID
+
+
+$source = "C:\DSC\sql\ZSQL01.mof"
+# Destination is the Share on the SMB pull server
+$dest = "DSCService:\Configuration\$guid.mof"
+Copy-Item -Path $source -Destination $dest
+#Then on Pull server make checksum
+New-DSCChecksum $dest
+
+Update-DscConfiguration -CimSession $cim -Wait -Verbose
