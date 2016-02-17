@@ -69,7 +69,7 @@ Configuration SecondDomainController {
         }         
         
         xADDomainController DSCPromo {
-            DomainAdministratorCredential = $domainCred
+            DomainAdministratorCredential = $Node.Credential
             DomainName = $Node.DomainName
             SafemodeAdministratorPassword = $safemodeAdministratorCred
             DatabasePath = 'E:\NTDS' 
@@ -101,9 +101,7 @@ $ConfigData = @{
 # Save ConfigurationData in a file with .psd1 file extension#
 SecondDomainController -ConfigurationData $ConfigData `
    -safemodeAdministratorCred (Get-Credential -UserName '(Password Only)' `
-    -Message "New Domain Safe Mode Administrator Password") `
-    -domainCred (Get-Credential -UserName Zephyr\administrator `
-      -Message "New Domain Admin Credential")
+    -Message "New Domain Safe Mode Administrator Password")
 
 Set-DscLocalConfigurationManager -Path .\SecondDomainController -Verbose -Force
 Start-DscConfiguration -ComputerName localhost -wait -force -Verbose -Path .\SecondDomainController
