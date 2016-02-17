@@ -23,6 +23,6 @@ $Path = 'E:\Hyper-V\Virtual Hard Disks\'+$Name+'DB.vhdx'
 
 New-VHD -Path ('E:\Hyper-V\Virtual Hard Disks\'+$Name+'DB.vhdx') -Dynamic -SizeBytes 1GB
 Add-VMHardDiskDrive -VMName $Name -Path ('E:\Hyper-V\Virtual Hard Disks\'+$Name+'DB.vhdx')
-New-VHD -Path ('E:\Hyper-V\Virtual Hard Disks\'+$Name+'logs.vhdx') -Dynamic -SizeBytes 1GB
+New-VHD -Path ('E:\Hyper-V\Virtual Hard Disks\'+$Name+'logs.vhdx') -Dynamic -SizeBytes 5GB
 Add-VMHardDiskDrive -VMName $Name -Path ('E:\Hyper-V\Virtual Hard Disks\'+$Name+'logs.vhdx')
 break
