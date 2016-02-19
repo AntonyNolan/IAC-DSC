@@ -7,7 +7,7 @@ Configuration SecondDomainController {
     )
     
     Import-DscResource -ModuleName xActiveDirectory
-    Import-DscResource –ModuleName PSDesiredStateConfiguration
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
     Import-DscResource -Module cNetworking
     Import-DscResource -Module xNetworking
     Import-DscResource -module xDHCpServer
