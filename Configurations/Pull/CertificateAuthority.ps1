@@ -1,7 +1,13 @@
 Configuration CertificateAuthority
 {        
 
-    Import-DscResource -ModuleName xAdcsDeployment,PSDesiredStateConfiguration,xNetworking,xComputerManagement,xTimeZone,cNetworking
+    Import-DscResource -ModuleName xAdcsDeployment
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
+    Import-DscResource -ModuleName cNetworking
+    Import-DscResource -ModuleName xNetworking
+    Import-DscResource -ModuleName xComputerManagement
+    Import-DscResource -ModuleName xTimeZone
+    Import-DscResource -ModuleName xRemoteDesktopAdmin
     
     Node $AllNodes.Where{$_.Role -eq "PKI"}.Nodename
     {         
@@ -46,14 +52,19 @@ Configuration CertificateAuthority
             AddressFamily  = 'IPV4'
         }
         
+        xRemoteDesktopAdmin RemoteDesktopSettings {
+            Ensure = 'Present'
+            UserAuthentication = 'Secure'
+        }
+        
         xFirewall AllowRDP {
             Name = 'DSC - Remote Desktop Admin Connection'
-            DisplayGroup = 'Remote Desktop'
+            Group = 'Remote Desktop'
             Ensure = 'Present'
             Enabled = $true
             Action = 'Allow'
             Profile = 'Domain'
-        }
+        }          
         
         WindowsFeature ADCS-Cert-Authority {
                Ensure = 'Present'
@@ -99,7 +110,7 @@ Configuration CertificateAuthority
 $ConfigData = @{             
     AllNodes = @(             
         @{             
-            Nodename = $env:COMPUTERNAME          
+            Nodename = 'ZCert01'          
             MachineName = 'ZCert01'
             Role = "PKI"             
             DomainName = "Zephyr"
@@ -108,13 +119,25 @@ $ConfigData = @{
             IPAddress = '192.168.2.3'
             DefaultGateway = '192.168.2.1'
             DNSIPAddress = '192.168.2.2'
-            CertificateFile = 'C:\Certs\ZSQL01.cer'            
+            CertificateFile = 'C:\Certs\ZCert01.cer'            
             Credential = (Get-Credential -UserName 'zephyr\administrator' -message 'Enter admin pwd')
         }                      
     )             
 }
 
-CertificateAuthority -ConfigurationData $ConfigData
+CertificateAuthority -ConfigurationData $ConfigData -OutputPath c:\dsc\CertificateAuthority
 
-Set-DscLocalConfigurationManager -Path .\CertificateAuthority -Verbose -Force
-Start-DscConfiguration -Path .\CertificateAuthority -Wait -Force -Verbose
+$cim = New-CimSession -ComputerName $ConfigData.AllNodes.Nodename
+$guid = Get-DscLocalConfigurationManager -CimSession $cim | Select-Object -ExpandProperty ConfigurationID
+
+
+$source = "C:\DSC\CertificateAuthority\$($ConfigData.AllNodes.Nodename).mof"
+#Mount PullServer PS Drive
+New-PSDrive -Name DSCService -Root "\\zpull01\c$\Program Files\WindowsPowerShell\DscService" -PSProvider FileSystem
+# Destination is the Share on the SMB pull server
+$dest = "DSCService:\Configuration\$guid.mof"
+Copy-Item -Path $source -Destination $dest
+#Then on Pull server make checksum
+New-DSCChecksum $dest
+
+Update-DscConfiguration -CimSession $cim -Wait -Verbose

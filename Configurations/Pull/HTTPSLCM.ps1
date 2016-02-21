@@ -7,7 +7,10 @@ Configuration LCM_HTTPSPULL
             [string[]]$ComputerName,
 
             [Parameter(Mandatory=$true)]
-            [string]$guid
+            [string]$guid,
+
+            [Parameter(Mandatory=$true)]
+            [string]$thumbprint
 
         )
 	Node $ComputerName {
@@ -18,7 +21,7 @@ Configuration LCM_HTTPSPULL
 		           ConfigurationMode = 'ApplyAndAutoCorrect'
 			RefreshMode = 'Pull'
 			ConfigurationID = $guid
-            CertificateID = 'BEC413EF926594141A1CA77B63EC54A33450A990'
+            CertificateID = $thumbprint
             }
 
             ConfigurationRepositoryWeb DSCHTTPS {
@@ -29,10 +32,14 @@ Configuration LCM_HTTPSPULL
 	}
 }
 
-$ComputerName = 'ZDC01'
+$ComputerName = 'ZCert01'
+
+$Cert = Export-MachineCert -computername $ComputerName -Path C:\Certs
+
+$cim = New-CimSession -ComputerName $ComputerName
 
 $guid=[guid]::NewGuid()
 
-LCM_HTTPSPULL -ComputerName $ComputerName -Guid $guid -OutputPath c:\DSC\HTTPS
+LCM_HTTPSPULL -ComputerName $ComputerName -Guid $guid -Thumbprint $Cert.Thumbprint -OutputPath c:\DSC\HTTPS
 
-Set-DscLocalConfigurationManager -CimSession $cim -Path C:\dsc\HTTPS
+Set-DscLocalConfigurationManager -CimSession $cim -Path C:\dsc\HTTPS -Verbose
