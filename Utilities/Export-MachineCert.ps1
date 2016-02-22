@@ -32,6 +32,8 @@ Try {
      Where-Object {$_.EnhancedKeyUsageList.FriendlyName -eq 'Document Encryption'}
      } -computername $computername -ErrorAction Stop
      write-verbose ($cert | out-string)
+
+     if (($cert.count) -gt '1'){$cert = $cert[0]}
 }
 Catch {
     Throw $_
