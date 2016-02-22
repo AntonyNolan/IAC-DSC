@@ -69,8 +69,15 @@ Configuration SQL {
             Enabled = $true
             Action = 'Allow'
             Profile = 'Domain'
-        }        
-    }
+        }
+        
+        Group LocalAdmins {
+            GroupName = 'Administrators'
+            Credential = $Node.Credential
+            Ensure = 'Present'
+            MembersToInclude = 'zephyr\SGD-ServerAdmins'
+        }                
+            }
 }
 
 $ConfigData = @{             
@@ -97,11 +104,14 @@ $cim = New-CimSession -ComputerName zsql01
 $guid=Get-DscLocalConfigurationManager -CimSession $cim| Select-Object -ExpandProperty ConfigurationID
 
 
-$source = "C:\DSC\sql\ZSQL01.mof"
+$source = "C:\DSC\sql\$($ConfigData.AllNodes.Nodename).mof"
+#Mount PullServer PS Drive
+New-PSDrive -Name DSCService -Root "\\zpull01\c$\Program Files\WindowsPowerShell\DscService" -PSProvider FileSystem
 # Destination is the Share on the SMB pull server
 $dest = "DSCService:\Configuration\$guid.mof"
-Copy-Item -Path $source -Destination $dest
+Copy-Item -Path $source -Destination $dest -Force -Verbose
 #Then on Pull server make checksum
-New-DSCChecksum $dest
+New-DSCChecksum $dest -Force
+
 
 Update-DscConfiguration -CimSession $cim -Wait -Verbose
