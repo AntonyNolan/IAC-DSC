@@ -32,7 +32,7 @@ Configuration LCM_HTTPSPULL
 	}
 }
 
-$ComputerName = 'ZCert01'
+$ComputerName = 'ZDC02'
 
 $Cert = Export-MachineCert -computername $ComputerName -Path C:\Certs
 
