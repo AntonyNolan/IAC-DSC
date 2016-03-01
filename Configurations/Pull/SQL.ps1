@@ -1,7 +1,6 @@
 Configuration SQL {
     param (
         [string[]]$NodeName,        
-        [string]$MachineName,
         [string]$IPAddress,
         [string]$DefaultGateway,
         [string[]]$DNSIPAddress,
@@ -25,7 +24,7 @@ Configuration SQL {
 
         If ((gwmi win32_computersystem).partofdomain -eq $false){
             xComputer NewName {
-                Name = $Node.MachineName
+                Name = $Node.NodeName
                 DomainName = $Node.DomainName
                 Credential = $Node.Credential
                 DependsOn = '[xDNSServerAddress]DnsServerAddress'
@@ -75,7 +74,7 @@ Configuration SQL {
             GroupName = 'Administrators'
             Credential = $Node.Credential
             Ensure = 'Present'
-            MembersToInclude = 'zephyr\SGD-ServerAdmins'
+            MembersToInclude = $Node.MembersToInclude
         }                
             }
 }
@@ -84,14 +83,14 @@ $ConfigData = @{
     AllNodes = @(             
         @{             
             Nodename = 'ZSQL01'
-            MachineName = 'ZSQL01'
             Role = "SQL"
             DomainName = "Zephyr"
-            PsDscAllowPlainTextPassword = $true
             PSDscAllowDomainUser = $true
             IPAddress = '192.168.2.4'
             DefaultGateway = '192.168.2.1'
             DNSIPAddress = '192.168.2.2'
+            CertificateFile = 'C:\Certs\ZSQL01.cer'
+            MembersToInclude = 'zephyr\SGD-ServerAdmins'
             Credential = (Get-Credential -UserName 'zephyr\administrator' -message 'Enter admin pwd')
         }                      
     )             
