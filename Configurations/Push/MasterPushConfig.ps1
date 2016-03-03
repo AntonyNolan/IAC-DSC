@@ -15,6 +15,7 @@ Configuration MasterPushConfig {
     Import-DscResource -Module xComputerManagement
     Import-DscResource -Module xTimeZone
     Import-DscResource -Module xRemoteDesktopAdmin
+    Import-DscResource -ModuleName xAdcsDeployment    
 
     Node $AllNodes.Nodename {
         
@@ -77,8 +78,51 @@ Configuration MasterPushConfig {
             Enabled = $true
             Action = 'Allow'
             Profile = 'Domain'
-        }        
-    }
+        }         
+    } #close all nodes
+    
+    Node $Allnodes.Where({$_.role -eq 'CertificateAuthority'}).Nodename {
+        
+        WindowsFeature ADCS-Cert-Authority {
+               Ensure = 'Present'
+               Name = 'ADCS-Cert-Authority'
+        }
+
+        WindowsFeature RSAT-ADCS {
+            Ensure = 'Present'
+            Name = 'RSAT-ADCS'
+            IncludeAllSubFeature = $true
+            DependsOn = '[WindowsFeature]ADCS-Cert-Authority'
+        }
+        
+        xADCSCertificationAuthority ADCS {
+            Ensure = 'Present'
+            Credential = $Node.Credential
+            CAType = 'EnterpriseRootCA'
+            DependsOn = '[WindowsFeature]ADCS-Cert-Authority'              
+        }
+        
+        WindowsFeature ADCS-Web-Enrollment {
+            Ensure = 'Present'
+            Name = 'ADCS-Web-Enrollment'
+            DependsOn = '[WindowsFeature]ADCS-Cert-Authority'
+        }
+        
+        xADCSWebEnrollment CertSrv {
+            Ensure = 'Present'
+            Name = 'CertSrv'
+            Credential = $Node.Credential
+            DependsOn = '[WindowsFeature]ADCS-Web-Enrollment','[xADCSCertificationAuthority]ADCS'
+        }
+        
+        WindowsFeature Web-Mgmt-Console {
+            Ensure = 'Present'
+            Name = 'Web-Mgmt-Console'
+            IncludeAllSubFeature = $true            
+        }             
+    } #close CertificateAuthority node
+    
+    
 }
 
 MasterPushConfig -ConfigurationData .\DemoConfigData.psd1 `
