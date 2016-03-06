@@ -9,7 +9,7 @@ Configuration HTTPSPull {
     )
     
     Import-DscResource –Module PSDesiredStateConfiguration
-    Import-DSCResource -ModuleName xPSDesiredStateConfiguration -ModuleVersion 3.6.0.0    
+    Import-DSCResource -Module xPSDesiredStateConfiguration
     Import-DscResource -Module cNetworking
     Import-DscResource -Module xNetworking
     Import-DscResource -Module xComputerManagement
