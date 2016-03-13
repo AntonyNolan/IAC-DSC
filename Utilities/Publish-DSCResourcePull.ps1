@@ -16,6 +16,8 @@ Allows the use of alternate credentials in for form doman\user.
 Publish-DSCResourcePull -Module xActiveDirectory -ComputerName ZPull01
 .EXAMPLE
 Publish-DSCResourcePull -Module xDisk -ComputerName ZPull01 -Credential zephyr\duffney
+.Notes
+Requires PowerShell v5
 #>
 [CmdletBinding()]
 Param(
