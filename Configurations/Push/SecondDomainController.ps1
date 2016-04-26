@@ -8,7 +8,6 @@ Configuration SecondDomainController {
     
     Import-DscResource -ModuleName xActiveDirectory
     Import-DscResource -ModuleName PSDesiredStateConfiguration
-    Import-DscResource -Module cNetworking
     Import-DscResource -Module xNetworking
     Import-DscResource -module xDHCpServer
     Import-DscResource -Module xComputerManagement
@@ -46,22 +45,20 @@ Configuration SecondDomainController {
 
         }
 
-        cDNSServerAddress DnsServerAddress
+        xDNSServerAddress DnsServerAddress
         {
             Address        = $Node.DNSIPAddress
             InterfaceAlias = 'Ethernet'
             AddressFamily  = 'IPV4'
         }
         
-        If ((gwmi win32_computersystem).partofdomain -eq $false){
-            xComputer NewName {
-                Name = $Node.MachineName
-                DomainName = $Node.DomainName
-                Credential = $Node.Credential
-                DependsOn = '[cDNSServerAddress]DnsServerAddress'
-            }
+        xComputer NewName {
+            Name = $Node.MachineName
+            DomainName = $Node.DomainName
+            Credential = $Node.Credential
+            DependsOn = '[xDNSServerAddress]DnsServerAddress'
         }
-        
+    
         WindowsFeature ADDSInstall 
         { 
             Ensure = "Present" 
