@@ -1,4 +1,9 @@
-Get-ADComputer -identity WIN-6J22PI2U9RJ
+$Session = New-PSSession -ComputerName WIN-6J22PI2U9RJ
 
-Test-Connection -ComputerName WIN-6J22PI2U9RJ -Count 2
+$Params =@{
+    Path = 'C:\Program Files\WindowsPowerShell\Modules\xComputerManagement'
+    Destination = 'C:\Program Files\WindowsPowerShell\Modules'
+    ToSession = $Session
+}
 
+Copy-Item @Params -Recurse
