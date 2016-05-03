@@ -35,6 +35,9 @@ RenameComputer -ConfigurationData $ConfigData -OutputPath c:\dsc\push
 #establish cim and PS sessions
 $cim = New-CimSession -ComputerName $ConfigData.AllNodes.NodeName
 
+#LCM settings
+Get-DscLocalConfigurationManager -CimSession $cim
+
 $PullSession = New-PSSession -ComputerName ps-pull01
 
 #Publish resource module on pullserver
@@ -43,12 +46,12 @@ Publish-DSCResourcePull -Module xComputerManagement -ComputerName $PullSession.C
 #stage pull config on pullserver
 $guid= Get-DscLocalConfigurationManager -CimSession $cim| Select-Object -ExpandProperty ConfigurationID
 
-$source = "C:\DSC\tsacorpconfig\$($ConfigData.AllNodes.NodeName).mof"
+$source = "C:\DSC\push\$($ConfigData.AllNodes.NodeName).mof"
 $dest = "$Env:PROGRAMFILES\WindowsPowerShell\DscService\Configuration"
 
 Copy-Item -Path $source -Destination $dest -ToSession $PullSession -force -verbose
 
-Invoke-Command $PullSession -ScriptBlock {Param($ComputerName,$guid)Rename-Item $env:ProgramFiles\WindowsPowerShell\DscService\Configuration\$ComputerName.mof -NewName $env:ProgramFiles\WindowsPowerShell\DscService\Configuration\$guid.mof} -ArgumentList $ComputerName,$guid
+Invoke-Command $PullSession -ScriptBlock {Param($ComputerName,$guid)Rename-Item $env:ProgramFiles\WindowsPowerShell\DscService\Configuration\$ComputerName.mof -NewName $env:ProgramFiles\WindowsPowerShell\DscService\Configuration\$guid.mof} -ArgumentList $($ConfigData.AllNodes.NodeName),$guid
 Invoke-Command $PullSession -ScriptBlock {Param($dest)New-DSCChecksum $dest -Force} -ArgumentList $dest
 
 #invoke pull
