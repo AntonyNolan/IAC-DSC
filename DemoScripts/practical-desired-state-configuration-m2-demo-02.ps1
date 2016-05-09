@@ -1,5 +1,4 @@
 # Installing DSC Resource Modules
-Install-Module xnet*
 Install-Module -Name xNetworking
 Install-Module -Name xNetworking -Force
 Install-Module -Name xNetworking -Scope CurrentUser -Force
