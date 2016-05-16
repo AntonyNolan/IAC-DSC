@@ -4,15 +4,23 @@ Install-Module -Name xComputerManagement
 Get-DscResource -Module xComputerManagement
 Get-DscResource -Name xComputer -Syntax
 
+
+
 #Simple DSC Configuration
 Configuration RenameComputer {
     param(
         [string]$NodeName,
         [string]$NewName
     )
+
+    Import-DscResource -ModuleName xComputerManagement
         
     Node $NodeName {
-        
+
+        xComputer RenameComputer
+        {
+            Name = $NewName
+        }         
     } #end node block
     
 } #end configuration 

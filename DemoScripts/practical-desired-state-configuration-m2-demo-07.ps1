@@ -34,11 +34,10 @@ RenameComputer -ConfigurationData $ConfigData -OutputPath c:\dsc\push
 
 #establish cim and PS sessions
 $cim = New-CimSession -ComputerName $ConfigData.AllNodes.NodeName
+$PullSession = New-PSSession -ComputerName ps-pull01
 
 #LCM settings
 Get-DscLocalConfigurationManager -CimSession $cim
-
-$PullSession = New-PSSession -ComputerName ps-pull01
 
 #Publish resource module on pullserver
 Publish-DSCResourcePull -Module xComputerManagement -ComputerName $PullSession.ComputerName
