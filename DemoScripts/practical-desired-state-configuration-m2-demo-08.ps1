@@ -1,4 +1,4 @@
-$cim = New-CimSession -ComputerName "PS-S01"
+$cim = New-CimSession -ComputerName "PS-S02"
 
 Test-DscConfiguration -CimSession $cim
 
