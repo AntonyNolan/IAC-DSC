@@ -1,28 +1,27 @@
 Configuration GlobomanticsCert
 {        
-
-    Import-DscResource -ModuleName xAdcsDeployment,PSDesiredStateConfiguration,xNetworking,xComputerManagement,xTimeZone
+Param (
+    [String[]]$WindowsFeature
+)
+    Import-DscResource -ModuleName xAdcsDeployment,PSDesiredStateConfiguration
     
     Node $AllNodes.Where{$_.Role -eq "PKI"}.Nodename
     {  
-        LocalConfigurationManager            
-        {            
-            ActionAfterReboot = 'ContinueConfiguration'            
-            ConfigurationMode = 'ApplyAndAutoCorrect'            
-            RebootNodeIfNeeded = $true            
-        }          
         
         WindowsFeature ADCS-Cert-Authority {
                Ensure = 'Present'
                Name = 'ADCS-Cert-Authority'
         }
-
-        WindowsFeature RSAT-ADCS {
-            Ensure = 'Present'
-            Name = 'RSAT-ADCS'
-            IncludeAllSubFeature = $true
-            DependsOn = '[WindowsFeature]ADCS-Cert-Authority'
-        }
+                
+        Foreach ($Feature In $WindowsFeature){
+            Write-Verbose -message [$Feature]
+            WindowsFeature $Feature {
+                Name = $Feature
+                Ensure = 'Present'
+                IncludeAllSubFeature = $true                
+                DependsOn = '[WindowsFeature]ADCS-Cert-Authority'
+            }
+        }          
         
         xADCSCertificationAuthority ADCS {
             Ensure = 'Present'
@@ -30,42 +29,29 @@ Configuration GlobomanticsCert
             CAType = 'EnterpriseRootCA'
             DependsOn = '[WindowsFeature]ADCS-Cert-Authority'              
         }
-        
-        WindowsFeature ADCS-Web-Enrollment {
-            Ensure = 'Present'
-            Name = 'ADCS-Web-Enrollment'
-            DependsOn = '[WindowsFeature]ADCS-Cert-Authority'
-        }
-        
+         
         xADCSWebEnrollment CertSrv {
             Ensure = 'Present'
-            Name = 'CertSrv'
+            IsSingleInstance = 'Yes'
             Credential = $Node.Credential
             DependsOn = '[WindowsFeature]ADCS-Web-Enrollment','[xADCSCertificationAuthority]ADCS'
         }
-        
-        WindowsFeature Web-Mgmt-Console {
-            Ensure = 'Present'
-            Name = 'Web-Mgmt-Console'
-            IncludeAllSubFeature = $true            
-        }         
+                             
     }  
 }
 
+$WindowsFeature = 'RSAT-ADCS','Web-Mgmt-Console','ADCS-Web-Enrollment'
 
 $ConfigData = @{             
     AllNodes = @(             
         @{             
             Nodename = 'Cert'          
-            Role = "PKI"             
-            PsDscAllowPlainTextPassword = $true
+            Role = "PKI"
+            CertificateFile = 'C:\Certs\Cert.cer'            
             PSDscAllowDomainUser = $true
             Credential = (Get-Credential -UserName 'globomantics\duffneyj' -message 'Enter admin pwd')
         }                      
     )             
 }
 
-GlobomanticsCert -ConfigurationData $ConfigData -OutputPath c:\dsc
-
-Set-DscLocalConfigurationManager -Path c:\dsc -Verbose -Force
-Start-DscConfiguration -Path c:\dsc -Wait -Force -Verbose
+GlobomanticsCert -ConfigurationData $ConfigData -WindowsFeature $WindowsFeature -OutputPath c:\dsc
