@@ -1,4 +1,4 @@
-Configuration GlobomanticsCertAuth
+Configuration GlobomanticsCert
 {        
 
     Import-DscResource -ModuleName xAdcsDeployment,PSDesiredStateConfiguration,xNetworking,xComputerManagement,xTimeZone
@@ -11,46 +11,6 @@ Configuration GlobomanticsCertAuth
             ConfigurationMode = 'ApplyAndAutoCorrect'            
             RebootNodeIfNeeded = $true            
         }          
-        
-        xTimeZone SystemTimeZone {
-            TimeZone = 'Central Standard Time'
-            IsSingleInstance = 'Yes'
-
-        }
-
-        If ((gwmi win32_computersystem).partofdomain -eq $false){
-            xComputer NewName {
-                Name = $Node.MachineName
-                DomainName = $Node.DomainName
-                Credential = $Node.Credential
-                DependsOn = '[xDNSServerAddress]DnsServerAddress'
-            }
-        }
-
-        xIPAddress NewIPAddress
-        {
-            IPAddress      = $Node.IPAddress
-            InterfaceAlias = "Ethernet"
-            SubnetMask     = 24
-            AddressFamily  = "IPV4"
- 
-        }
-
-        xDefaultGatewayAddress NewDefaultGateway
-        {
-            AddressFamily = 'IPv4'
-            InterfaceAlias = 'Ethernet'
-            Address = $Node.DefaultGateway
-            DependsOn = '[xIPAddress]NewIpAddress'
-
-        }
-        
-        xDNSServerAddress DnsServerAddress
-        {
-            Address        = $Node.DNSIPAddress
-            InterfaceAlias = 'Ethernet'
-            AddressFamily  = 'IPV4'
-        }
         
         WindowsFeature ADCS-Cert-Authority {
                Ensure = 'Present'
@@ -96,21 +56,16 @@ Configuration GlobomanticsCertAuth
 $ConfigData = @{             
     AllNodes = @(             
         @{             
-            Nodename = $env:COMPUTERNAME          
-            MachineName = 'PS-Cert01'
+            Nodename = 'Cert'          
             Role = "PKI"             
-            DomainName = "globomantics"
             PsDscAllowPlainTextPassword = $true
             PSDscAllowDomainUser = $true
-            IPAddress = '192.168.2.3'
-            DefaultGateway = '192.168.2.1'
-            DNSIPAddress = '192.168.2.2'
-            Credential = (Get-Credential -UserName 'globomantics\administrator' -message 'Enter admin pwd')
+            Credential = (Get-Credential -UserName 'globomantics\duffneyj' -message 'Enter admin pwd')
         }                      
     )             
 }
 
-GlobomanticsCertAuth -ConfigurationData $ConfigData -OutputPath c:\dsc
+GlobomanticsCert -ConfigurationData $ConfigData -OutputPath c:\dsc
 
 Set-DscLocalConfigurationManager -Path c:\dsc -Verbose -Force
 Start-DscConfiguration -Path c:\dsc -Wait -Force -Verbose
