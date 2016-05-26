@@ -54,4 +54,4 @@ $ConfigData = @{
     )             
 }
 
-GlobomanticsCert -ConfigurationData $ConfigData -WindowsFeature $WindowsFeature -OutputPath c:\dsc
+GlobomanticsCert -ConfigurationData $ConfigData -WindowsFeature $WindowsFeature -OutputPath c:\dsc\cert
