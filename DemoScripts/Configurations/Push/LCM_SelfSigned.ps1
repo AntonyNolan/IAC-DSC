@@ -33,12 +33,12 @@ $cert = invoke-command -scriptblock {
      Where-Object {$_.FriendlyName -eq 'SelfSigned'}
      } -computername cert
 
-Export-Certificate -Cert $cert -FilePath C:\Certs\cert.cer
-
 $cim = New-CimSession -ComputerName $ComputerName
 
 $guid=[guid]::NewGuid()
 
-LCM_SelfSigned -ComputerName $ComputerName -Guid $guid -Thumbprint $Cert.Thumbprint -OutputPath c:\DSC\HTTPS
+LCM_SelfSigned -ComputerName $ComputerName -Guid $guid -Thumbprint $Cert.Thumbprint -OutputPath c:\dsc\Cert
 
-Set-DscLocalConfigurationManager -CimSession $cim -Path C:\dsc\HTTPS -Verbose
+Set-DscLocalConfigurationManager -CimSession $cim -Path C:\dsc\Cert -Verbose
+
+Get-DscLocalConfigurationManager -CimSession $cim
