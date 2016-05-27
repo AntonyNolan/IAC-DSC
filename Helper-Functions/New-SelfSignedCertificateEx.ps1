@@ -190,10 +190,7 @@ function New-SelfSignedCertificateEx {
 		[Parameter(Mandatory = $true, ParameterSetName = '__file')]
 		[Security.SecureString]$Password,
 		[switch]$AllowSMIME,
-		[switch]$Exportable,
-        [Parameter()]
-        [ValidateNotNullOrEmpty()]
-        [PSTypeName('PSobj')]$PSobj		
+		[switch]$Exportable	
 	)
 	$ErrorActionPreference = "Stop"
 	if ([Environment]::OSVersion.Version.Major -lt 6) {
