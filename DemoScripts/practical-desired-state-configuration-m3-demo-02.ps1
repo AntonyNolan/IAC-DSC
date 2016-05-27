@@ -1,19 +1,16 @@
 $Session = New-PSSession -ComputerName Cert
 
 #load custom cmdlet, create self signed cert
-PSEdit C:\GitHub\IAC-DSC\Helper-Functions\New-SelfSignedCertificateEx.ps1
+. "C:\GitHub\IAC-DSC\Helper-Functions\New-SelfSignedCertificateEx.ps1"
 
-Enter-PSSession -Session $Session
-
-New-SelfSignedCertificateEx -Subject 'CN=Cert' -StoreLocation LocalMachine -StoreName My -EnhancedKeyUsage "Document Encryption" -FriendlyName SelfSigned
-
-Exit-PSSession
+Invoke-Command -Session $Session -ScriptBlock ${Function:New-SelfSignedCertificateEx} `
+-ArgumentList 'CN=Cert','LocalMachine','My','Document Encryption','SelfSigned'
 
 #Get cert info and export to authoring machine
 $cert = Invoke-Command -scriptblock { 
      Get-ChildItem Cert:\LocalMachine\my | 
      Where-Object {$_.FriendlyName -eq 'SelfSigned'}
-     } -computername cert
+     } -Session $Session
 
 $cert
 
