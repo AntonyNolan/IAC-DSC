@@ -1,4 +1,4 @@
-#Verify & test cert server
+#Verify cert server
 Get-ADComputer -Identity Cert
 Test-Connection -ComputerName Cert
 
