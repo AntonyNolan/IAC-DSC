@@ -1,4 +1,4 @@
-Configuration GlobomanticsCert
+Configuration GlobomanticsCertNotSecure
 {        
 Param (
     [String[]]$WindowsFeature
@@ -55,4 +55,4 @@ $ConfigData = @{
     )             
 }
 
-GlobomanticsCert -ConfigurationData $ConfigData -WindowsFeature $WindowsFeature -OutputPath c:\dsc\cert
+GlobomanticsCertNotSecure -ConfigurationData $ConfigData -WindowsFeature $WindowsFeature -OutputPath c:\dsc\cert
