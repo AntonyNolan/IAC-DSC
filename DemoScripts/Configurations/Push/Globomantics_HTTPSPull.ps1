@@ -10,9 +10,6 @@ Configuration GlobomanticsHTTPSPull {
     
     Import-DscResource –Module PSDesiredStateConfiguration
     Import-DSCResource -Module xPSDesiredStateConfiguration
-    Import-DscResource -Module xNetworking
-    Import-DscResource -Module xComputerManagement
-    Import-DscResource -Module xTimeZone
 
     Node $AllNodes.Where{$_.Role -eq "HTTPSPull"}.Nodename {
         
@@ -22,46 +19,6 @@ Configuration GlobomanticsHTTPSPull {
             ConfigurationMode = 'ApplyAndAutoCorrect'            
             RebootNodeIfNeeded = $true            
         }          
-        
-        xTimeZone SystemTimeZone {
-            TimeZone = 'Central Standard Time'
-            IsSingleInstance = 'Yes'
-
-        }
-
-        If ((gwmi win32_computersystem).partofdomain -eq $false){
-            xComputer NewName {
-                Name = $Node.MachineName
-                DomainName = $Node.DomainName
-                Credential = $Node.Credential
-                DependsOn = '[xDNSServerAddress]DnsServerAddress'
-            }
-        }
-
-        xIPAddress NewIPAddress
-        {
-            IPAddress      = $Node.IPAddress
-            InterfaceAlias = "Ethernet"
-            SubnetMask     = 24
-            AddressFamily  = "IPV4"
- 
-        }
-
-        xDefaultGatewayAddress NewDefaultGateway
-        {
-            AddressFamily = 'IPv4'
-            InterfaceAlias = 'Ethernet'
-            Address = $Node.DefaultGateway
-            DependsOn = '[xIPAddress]NewIpAddress'
-
-        }
-        
-        xDNSServerAddress DnsServerAddress
-        {
-            Address        = $Node.DNSIPAddress
-            InterfaceAlias = 'Ethernet'
-            AddressFamily  = 'IPV4'
-        }
         
         WindowsFeature DSCServiceFeature
         {
@@ -85,40 +42,27 @@ Configuration GlobomanticsHTTPSPull {
             ConfigurationPath       = "$env:PROGRAMFILES\WindowsPowerShell\DscService\Configuration"
             State                   = "Started"
             DependsOn               = "[WindowsFeature]DSCServiceFeature"
-        }
-
-        xDscWebService PSDSCComplianceServer
-        {
-            Ensure                  = "Present"
-            EndpointName            = "PSDSCComplianceServer"
-            Port                    = 9080
-            PhysicalPath            = "$env:SystemDrive\inetpub\wwwroot\PSDSCComplianceServer"
-            CertificateThumbPrint   = "AllowUnencryptedTraffic"
-            State                   = "Started"
-            DependsOn               = ("[WindowsFeature]DSCServiceFeature","[xDSCWebService]PSDSCPullServer")
-        }        
+        }       
     }
 }
+
+$ComputerName = 'Pull'
+$CertificateThumbPrint = Invoke-Command -Computername $ComputerName {Get-Childitem Cert:\LocalMachine\My | Where-Object {$_.FriendlyName -eq "PSDSCPullServerCert"} | Select-Object -ExpandProperty ThumbPrint}
 
 $ConfigData = @{             
     AllNodes = @(             
         @{             
-            Nodename = $env:COMPUTERNAME
-            MachineName = 'PS-Pull01'
+            Nodename = $ComputerName
             Role = "HTTPSPull"
-            CertificateThumbPrint = '2A3DCD224519CAACE33AED52492F2A62D990FA17'
-            DomainName = "globomantics"
+            CertificateThumbPrint = $CertificateThumbPrint
             PsDscAllowPlainTextPassword = $true
             PSDscAllowDomainUser = $true
-            IPAddress = '192.168.2.5'
-            DefaultGateway = '192.168.2.1'
-            DNSIPAddress = '192.168.2.2'
-            Credential = (Get-Credential -UserName 'globomantics\administrator' -message 'Enter admin pwd')
+            Credential = (Get-Credential -UserName 'globomantics\duffneyj' -message 'Enter admin pwd')
         }                      
     )             
 }
 
-GlobomanticsHTTPSPull -ConfigurationData $ConfigData -outputpath c:\dsc
+GlobomanticsHTTPSPull -ConfigurationData $ConfigData -outputpath c:\dsc\pull
 
-Set-DscLocalConfigurationManager -Path c:\dsc -Verbose -Force
-Start-DscConfiguration -Path c:\dsc -Wait -Force -Verbose
+Set-DscLocalConfigurationManager -Path c:\dsc\pull -Verbose -Force -ComputerName $ComputerName
+Start-DscConfiguration -Path c:\dsc\pull -Wait -Force -Verbose
