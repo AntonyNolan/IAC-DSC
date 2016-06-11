@@ -17,7 +17,7 @@ $params =@{
 
 Copy-Item @params
 
-Invoke-Command -Session $Session -ScriptBlock {Get-Module xAdcsDeployment -ListAvailable}
+Invoke-Command -Session $Session -ScriptBlock {Get-Module xPSDesiredStateConfiguration -ListAvailable}
 
 #Create secure DSC config
 psEdit C:\GitHub\IAC-DSC\DemoScripts\Configurations\Push\Globomantics_HTTPSPullSecure.ps1
