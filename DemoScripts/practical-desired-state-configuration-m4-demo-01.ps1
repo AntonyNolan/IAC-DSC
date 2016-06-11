@@ -1,15 +1,25 @@
-$PullCert = Invoke-Command -scriptblock { 
-    Get-ChildItem Cert:\LocalMachine\my | 
-    Where-Object {$_.FriendlyName -eq 'PSDSCPullServerCert'}
-    } -ComputerName Cert
-
-$PullCert
-
-Export-Certificate -Cert $PullCert -FilePath "$env:systemdrive:\Certs\PSDSCPullServerCert.cer" -Force
-
+#Create PS session
 $Session = New-PSSession -ComputerName Pull
-Copy-Item -Path C:\Certs\PSDSCPullServerCert.cer -Destination "C:\" -ToSession $Session
 
-Invoke-Command -ScriptBlock `
-{Import-Certificate -FilePath "$env:systemdrive:\PSDSCPullServerCert.cer" `
--CertStoreLocation 'Cert:\LocalMachine\My'} ` -Session $Session
+#Install xAdcsDeployment from PSGallery
+Install-Module xPSDesiredStateConfiguration -MaximumVersion 3.9.0.0
+
+#Copy module to remote node
+$params =@{
+    Path = (Get-Module xPSDesiredStateConfiguration -ListAvailable).ModuleBase
+    Destination = "$env:SystemDrive\Program Files\WindowsPowerShell\Modules\xPSDesiredStateConfiguration"
+    ToSession = $Session
+    Force = $true
+    Recurse = $true
+    Verbose = $true
+
+}
+
+Copy-Item @params
+
+Invoke-Command -Session $Session -ScriptBlock {Get-Module xPSDesiredStateConfiguration -ListAvailable}
+
+#Create secure DSC config
+psEdit C:\GitHub\IAC-DSC\DemoScripts\Configurations\Push\Globomantics_HTTPSPull.ps1
+
+Start-Process -FilePath iexplore.exe https://pull.globomantics.com:8080/PSDSCPullServer.svc

@@ -1,9 +1,9 @@
 Configuration GlobomanticsHTTPSPull {
     param (
-        [string[]]$NodeName,        
+        [string]$NodeName
     )
     
-    Import-DscResource â€“Module PSDesiredStateConfiguration
+    Import-DscResource –Module PSDesiredStateConfiguration
     Import-DSCResource -Module xPSDesiredStateConfiguration
 
     Node $AllNodes.Where{$_.Role -eq "HTTPSPull"}.Nodename {
