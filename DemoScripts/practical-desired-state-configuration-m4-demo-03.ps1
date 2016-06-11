@@ -1,19 +1,61 @@
-Configuration ServerAdminsGroup {
+Configuration Baseline {
     Param (
         [Parameter(Mandatory=$true)]
-        [PSCredential]$Credential
+        [PSCredential]$Password
     )
     
     Import-DscResource -ModuleName PSDesiredStateConfiguration
+    Import-DscResource -ModuleName xNetworking -ModuleVersion 2.8.0.0
+
 
     Node $AllNodes.NodeName
     {
-        Group ServerAdmins {
-            GroupName = 'ServerAdmins'
-            Members = 'globomantics\duffneyj'
+
+        User LocalAdmin {
             Ensure = 'Present'
-            Credential = $Credential
+            UserName = 'LocalAdmin'
+            Description = 'Local Administrator Account'
+            Disabled = $false
+            Password = $Password
         }
+
+        Group Administrators {
+            GroupName = 'Administrators'
+            Members = 'LocalAdmin'
+            Ensure = 'Present'
+            DependsOn = '[User]LocalAdmin'
+        }
+
+        Service RemoteRegistry {
+            Ensure = 'Present'
+            StartupType = 'Automatic'
+            State = 'Running'
+        }
+
+        xFirewall RemoteLogManagement {
+            Name = 'EventLog-Forwarding'
+            Group = 'Remote Event Log Management'
+            Ensure = 'Present'
+            Enabled = 'True'
+            Action = 'Allow'
+            Profile = 'Domain'
+        }
+
+        xFirewall EventMonitor {
+            Name = 'Remote Event Monitor'
+            Group = 'Remote Event Monitor'
+            Ensure = 'Present'
+            Enabled = 'True'
+            Action = 'Allow'
+            Profile = 'Domain'
+        }
+
+        Log Baseline {
+            Message = 'Baseline configuration complete'
+            DependsOn = '[Service]RemoteRegistry','[Group]Administrators','[xFirewall]EventMonitor','[xFirewall]RemoteLogManagement'
+        }
+
+
     }
 }
 
@@ -28,8 +70,8 @@ $configdata = @{
 }
 
 #Generate Secure .mof  
-ServerAdminsGroup -ConfigurationData $ConfigData `
--Credential (Get-Credential -UserName globomantics\duffneyj -Message 'Enter Password') `
+Baseline -ConfigurationData $ConfigData `
+-password (Get-Credential -UserName LocalAdmin -Message 'Enter Password') `
 -OutputPath c:\dsc\s2
 
 #establish cim and PS sessions
@@ -53,4 +95,4 @@ psEdit "\\pull\C$\Program Files\WindowsPowerShell\DscService\Configuration\$guid
 Update-DscConfiguration -CimSession $cim -Wait -Verbose
 
 #Query group memberships
-Invoke-Command s2 -ScriptBlock {net localgroup serveradmins}
+Get-DscConfigurationStatus -CimSession $cim
