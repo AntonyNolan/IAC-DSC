@@ -19,7 +19,7 @@ Copy-Item @params
 
 Invoke-Command -Session $Session -ScriptBlock {Get-Module xPSDesiredStateConfiguration -ListAvailable}
 
-#Create secure DSC config
+#HTTPS Pull Server DSC config
 psEdit C:\GitHub\IAC-DSC\DemoScripts\Configurations\Push\Globomantics_HTTPSPull.ps1
 
 Start-Process -FilePath iexplore.exe https://pull.globomantics.com:8080/PSDSCPullServer.svc

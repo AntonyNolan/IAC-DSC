@@ -12,9 +12,9 @@ configuration SetupCollector
         Name = "Enabled"
     }
 
-    xWEFSubscription TestSub
+    xWEFSubscription ADSecurity
     {
-        SubscriptionID = "TestSub11"
+        SubscriptionID = "ADSecurity"
         Ensure = "Present"
         LogFile = 'ForwardedEvents'
         SubscriptionType = 'CollectorInitiated'
