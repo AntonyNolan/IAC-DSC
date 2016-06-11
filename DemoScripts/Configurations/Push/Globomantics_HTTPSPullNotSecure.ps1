@@ -42,7 +42,6 @@ Configuration GlobomanticsHTTPSPull {
 }
 
 $ComputerName = 'Pull'
-
 $CertificateThumbPrint = Invoke-Command -Computername $ComputerName `
 {Get-Childitem Cert:\LocalMachine\My | Where-Object {$_.FriendlyName -eq "PSDSCPullServerCert"} | Select-Object -ExpandProperty ThumbPrint}
 
@@ -52,11 +51,14 @@ $ConfigData = @{
             Nodename = $ComputerName
             Role = "HTTPSPull"
             CertificateThumbPrint = $CertificateThumbPrint
+            PsDscAllowPlainTextPassword = $true
+            PSDscAllowDomainUser = $true
+            Credential = (Get-Credential -UserName 'globomantics\duffneyj' -message 'Enter admin pwd')
         }                      
     )             
 }
 
 GlobomanticsHTTPSPull -ConfigurationData $ConfigData -outputpath c:\dsc\pull
 
-Set-DscLocalConfigurationManager -Path c:\dsc\pull -ComputerName $ComputerName -Verbose -Force
-Start-DscConfiguration -Path c:\dsc\pull -ComputerName $ComputerName -Wait -Force -Verbose 
+Set-DscLocalConfigurationManager -Path c:\dsc\pull -Verbose -Force -ComputerName $ComputerName
+Start-DscConfiguration -Path c:\dsc\pull -Wait -Force -Verbose
