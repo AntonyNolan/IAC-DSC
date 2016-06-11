@@ -7,7 +7,7 @@ Install-Module xPSDesiredStateConfiguration
 #Copy module to remote node
 $params =@{
     Path = (Get-Module xPSDesiredStateConfiguration -ListAvailable).ModuleBase
-    Destination = "$env:SystemDrive\Program Files\WindowsPowerShell\Modules\xAdcsDeployment"
+    Destination = "$env:SystemDrive\Program Files\WindowsPowerShell\Modules\xPSDesiredStateConfiguration"
     ToSession = $Session
     Force = $true
     Recurse = $true
@@ -17,7 +17,7 @@ $params =@{
 
 Copy-Item @params
 
-Invoke-Command -Session $Session -ScriptBlock {Get-Module xAdcsDeployment -ListAvailable}
+Invoke-Command -Session $Session -ScriptBlock {Get-Module xPSDesiredStateConfiguration -ListAvailable}
 
 #Create secure DSC config
-psEdit C:\GitHub\IAC-DSC\DemoScripts\Configurations\Push\Globomantics_HTTPSPullSecure.ps1
+psEdit C:\GitHub\IAC-DSC\DemoScripts\Configurations\Push\Globomantics_HTTPSPull.ps1
