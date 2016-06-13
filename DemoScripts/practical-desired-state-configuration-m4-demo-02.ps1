@@ -43,7 +43,7 @@ $cert = invoke-command -scriptblock {
      Where-Object {$_.Issuer -eq 'CN=GLOBOMANTICS-CERT-CA, DC=GLOBOMANTICS, DC=COM'}
      } -computername $ComputerName
 
-$PullCertThumbPrint = Invoke-Command -Computername $PullServer `
+$PullCertThumbPrint = Invoke-Command -Computername $PullServer -ScriptBlock `
 {Get-Childitem Cert:\LocalMachine\My | Where-Object {$_.FriendlyName -eq "PSDSCPullServerCert"} | Select-Object -ExpandProperty ThumbPrint}     
 
 $cim = New-CimSession -ComputerName $ComputerName
@@ -54,6 +54,6 @@ HTTPS_LCM -ComputerName $ComputerName -Guid $guid -Thumbprint $Cert.Thumbprint -
 
 Set-DscLocalConfigurationManager -CimSession $cim -Path C:\dsc\s2 -Verbose
 
-Get-DscLocalConfigurationManager -CimSession $cim | select -ExpandProperty ConfigurationDownloadManagers
-
 Get-DscLocalConfigurationManager -CimSession $cim
+
+Get-DscLocalConfigurationManager -CimSession $cim | select -ExpandProperty ConfigurationDownloadManagers

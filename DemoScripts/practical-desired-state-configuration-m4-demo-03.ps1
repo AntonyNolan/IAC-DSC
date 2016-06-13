@@ -1,11 +1,13 @@
 Configuration Baseline {
     Param (
         [Parameter(Mandatory=$true)]
-        [PSCredential]$Password
+        [PSCredential]$Password,
+        [Parameter(Mandatory=$true)]
+        [PSCredential]$Credential
     )
     
     Import-DscResource -ModuleName PSDesiredStateConfiguration
-    Import-DscResource -ModuleName xNetworking -ModuleVersion 2.8.0.0
+    Import-DscResource -ModuleName xNetworking
 
 
     Node $AllNodes.NodeName
@@ -21,13 +23,21 @@ Configuration Baseline {
 
         Group Administrators {
             GroupName = 'Administrators'
-            Members = 'LocalAdmin'
+            MembersToInclude = 'LocalAdmin'
             Ensure = 'Present'
+            DependsOn = '[User]LocalAdmin'
+            Credential = $Credential
+        }
+
+        User AdministratorDisable {
+            UserName = 'Administrator'
+            Disabled = $true
             DependsOn = '[User]LocalAdmin'
         }
 
         Service RemoteRegistry {
             Ensure = 'Present'
+            Name = 'RemoteRegistry'
             StartupType = 'Automatic'
             State = 'Running'
         }
@@ -69,9 +79,18 @@ $configdata = @{
     )
 }
 
+#Export Certificate to authoring machine
+$cert = Invoke-Command -scriptblock { 
+    Get-ChildItem Cert:\LocalMachine\my | 
+    Where-Object {$_.Issuer -eq 'CN=GLOBOMANTICS-CERT-CA, DC=GLOBOMANTICS, DC=COM'}
+    } -ComputerName $configdata.AllNodes.nodename
+
+Export-Certificate -Cert $Cert -FilePath $env:systemdrive:\Certs\$($Cert.PSComputerName).cer -Force
+
 #Generate Secure .mof  
 Baseline -ConfigurationData $ConfigData `
 -password (Get-Credential -UserName LocalAdmin -Message 'Enter Password') `
+-Credential (Get-Credential -UserName globomantics\duffneyj -Message 'Enter Password') `
 -OutputPath c:\dsc\s2
 
 #establish cim and PS sessions
@@ -86,13 +105,16 @@ $dest = "$Env:PROGRAMFILES\WindowsPowerShell\DscService\Configuration"
 
 Copy-Item -Path $source -Destination $dest -ToSession $PullSession -force -verbose
 
-Invoke-Command $PullSession -ScriptBlock {Param($ComputerName,$guid)Rename-Item $env:ProgramFiles\WindowsPowerShell\DscService\Configuration\$ComputerName.mof -NewName $env:ProgramFiles\WindowsPowerShell\DscService\Configuration\$guid.mof} -ArgumentList $($ConfigData.AllNodes.NodeName),$guid
+Invoke-Command $PullSession -ScriptBlock {Param($ComputerName,$guid)Rename-Item $env:ProgramFiles\WindowsPowerShell\DscService\Configuration\$ComputerName.mof -NewName $env:ProgramFiles\WindowsPowerShell\DscService\Configuration\$guid.mof -Force} -ArgumentList $($ConfigData.AllNodes.NodeName),$guid
 Invoke-Command $PullSession -ScriptBlock {Param($dest)New-DSCChecksum $dest -Force} -ArgumentList $dest
-
-psEdit "\\pull\C$\Program Files\WindowsPowerShell\DscService\Configuration\$guid.mof"
 
 #invoke pull
 Update-DscConfiguration -CimSession $cim -Wait -Verbose
+
+#Stage xNetworking Resource
+. C:\GitHub\IAC-DSC\Helper-Functions\Publish-DSCResourcePull.ps1
+
+Publish-DSCResourcePull -Module xnetworking -ComputerName $PullSession.ComputerName
 
 #Query group memberships
 Get-DscConfigurationStatus -CimSession $cim
