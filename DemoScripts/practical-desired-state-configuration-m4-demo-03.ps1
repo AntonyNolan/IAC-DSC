@@ -116,5 +116,4 @@ Update-DscConfiguration -CimSession $cim -Wait -Verbose
 
 Publish-DSCResourcePull -Module xnetworking -ComputerName $PullSession.ComputerName
 
-#Query group memberships
 Get-DscConfigurationStatus -CimSession $cim
