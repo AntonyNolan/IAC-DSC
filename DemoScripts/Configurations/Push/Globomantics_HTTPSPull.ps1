@@ -3,8 +3,8 @@ Configuration GlobomanticsHTTPSPull {
         [string]$NodeName
     )
     
-    Import-DscResource –Module PSDesiredStateConfiguration
-    Import-DSCResource -Module xPSDesiredStateConfiguration
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
+    Import-DSCResource -ModuleName xPSDesiredStateConfiguration
 
     Node $AllNodes.Where{$_.Role -eq "HTTPSPull"}.Nodename {
         
@@ -21,7 +21,8 @@ Configuration GlobomanticsHTTPSPull {
             Name   = "DSC-Service"
         }
 
-        WindowsFeature IISConsole {
+        WindowsFeature IISConsole 
+        {
             Ensure = "Present"
             Name   = "Web-Mgmt-Console"
         }
@@ -59,4 +60,6 @@ $ConfigData = @{
 GlobomanticsHTTPSPull -ConfigurationData $ConfigData -outputpath c:\dsc\pull
 
 Set-DscLocalConfigurationManager -Path c:\dsc\pull -ComputerName $ComputerName -Verbose -Force
-Start-DscConfiguration -Path c:\dsc\pull -ComputerName $ComputerName -Wait -Force -Verbose 
+Start-DscConfiguration -Path c:\dsc\pull -ComputerName $ComputerName -Wait -Force -Verbose
+
+Start-Process -FilePath iexplore.exe https://pull.globomantics.com:8080/PSDSCPullServer.svc

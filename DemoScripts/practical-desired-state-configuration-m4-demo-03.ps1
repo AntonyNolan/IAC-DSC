@@ -32,7 +32,7 @@ Configuration Baseline {
         User AdministratorDisable {
             UserName = 'Administrator'
             Disabled = $true
-            DependsOn = '[User]LocalAdmin'
+            DependsOn = '[Group]Administrators'
         }
 
         Service RemoteRegistry {
@@ -98,7 +98,8 @@ $cim = New-CimSession -ComputerName s2
 $PullSession = New-PSSession -ComputerName pull
 
 #stage pull config on pullserver
-$guid = Get-DscLocalConfigurationManager -CimSession $cim | Select-Object -ExpandProperty ConfigurationID
+$guid = Get-DscLocalConfigurationManager -CimSession $cim `
+| Select-Object -ExpandProperty ConfigurationID
 
 $source = "C:\DSC\s2\$($ConfigData.AllNodes.NodeName).mof"
 $dest = "$Env:PROGRAMFILES\WindowsPowerShell\DscService\Configuration"
@@ -117,3 +118,8 @@ Update-DscConfiguration -CimSession $cim -Wait -Verbose
 Publish-DSCResourcePull -Module xnetworking -ComputerName $PullSession.ComputerName
 
 Get-DscConfigurationStatus -CimSession $cim
+
+Invoke-Command -ComputerName $cim.ComputerName `
+-ScriptBlock {net localgroup administrators}
+
+Get-Service -ComputerName $cim.ComputerName -Name RemoteRegistry
