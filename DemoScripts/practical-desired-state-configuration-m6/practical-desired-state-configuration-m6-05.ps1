@@ -1,8 +1,8 @@
-#View, Remove, update current subscription
-cmd /c wecutil es
-cmd /c wecutil gs adsecurity
-cmd /c wecutil ds ADSecurity 
+#Confirm DC was Promoted
+(Get-ADDomainController -filter *).Name
 
+#Reapply Collector DSC Configuration
+Start-DscConfiguration -Wait -Force -Path c:\DSC\ -Verbose
 
 #Method 1: Nuke
 $Subs = cmd /c wecutil es
@@ -12,7 +12,8 @@ if ($Subs -contains 'ADSecurity'){
 }
 
 #Method 2: Compare
-$EventSources = cmd /c wecutil gs adsecurity | Select-String -SimpleMatch "Address" | % {($_).tostring().split(':')[1].trim()}
+$EventSources = cmd /c wecutil gs adsecurity | `
+Select-String -SimpleMatch "Address" | % {($_).tostring().split(':')[1].trim()}
 $DCs = (Get-ADDomainController -filter *).HostName
 
 if ((Compare-Object $DCs $EventSources).length -ne 0){
@@ -20,8 +21,8 @@ if ((Compare-Object $DCs $EventSources).length -ne 0){
     cmd /c wecutil ds ADSecurity
 }
 
-#Re-apply WEF DSC Config
-Start-DscConfiguration -Wait -Force -Path c:\DSC\ -Verbose
+#Method 3 
+psEdit C:\GitHub\IAC-DSC\DemoScripts\Configurations\Push\GlobomanticsDynamicCollector.ps1
 
 #Verify Subscription exists
 cmd /c wecutil gs adsecurity

@@ -34,6 +34,37 @@ configuration GlobomanticsCollector {
             Name = "Enabled"
         }
 
+        Script DynamicEventSource {
+            
+            GetScript = {
+            #Do Nothing
+            }
+
+            SetScript = {
+                Write-Verbose -Message "Comparing EventSources with Domain Controllers"
+
+                $EventSources = Invoke-Command $Using:Node.NodeName -ScriptBlock {cmd /c wecutil gs adsecurity} | `
+                Select-String -SimpleMatch "Address" | % {($_).tostring().split(':')[1].trim()}
+        
+                $DCs = (Get-ADDomainController -filter *).HostName
+
+                if ((Compare-Object $DCs $EventSources).length -ne 0){
+            
+                    Write-Verbose "EventSources Did Not Match"
+            
+                    Invoke-Command $Using:Node.NodeName -ScriptBlock {cmd /c wecutil ds ADSecurity}
+
+                    Write-Verbose "Removed Subscription [ADSecurity]"
+                }            
+            }
+
+            TestScript = {
+                $false
+            }
+        }
+
+
+
         xWEFSubscription ADSecurity
         {
             SubscriptionID = "ADSecurity"

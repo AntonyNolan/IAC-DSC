@@ -12,3 +12,4 @@ Invoke-Command -ComputerName $cim.ComputerName -ScriptBlock {cmd /c wecutil ds A
 
 Invoke-Command -ComputerName DC4 -ScriptBlock {Remove-Item "c:\Program Files\WindowsPowerShell\Modules\xActiveDirectory" -Recurse -Confirm:$false -Force}
 
+Invoke-Command -ComputerName dc4 -ScriptBlock {Uninstall-ADDSDomainController}
