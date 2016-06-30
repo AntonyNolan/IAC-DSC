@@ -1,6 +1,13 @@
-# Confirm DSC Configuration applied
-$cim = New-CimSession -ComputerName DC4
-Get-DscConfigurationStatus -CimSession $cim
+#View Subscription
+Invoke-Command -ComputerName Collector -ScriptBlock {cmd /c wecutil es}
+Invoke-Command -ComputerName Collector -ScriptBlock {cmd /c wecutil gs adsecurity}
+
+#Confirm EventForwarding is working
+Get-WinEvent -ComputerName collector -LogName ForwardedEvents -MaxEvents 20 | `
+select MachineName,TimeCreated,Message
 
 #Start Event Viewer
 Start-Process "c:\windows\system32\eventvwr.msc" -ArgumentList "/s"
+
+#RDP to Collector
+Start-Process "C:\Windows\system32\mstsc.exe"

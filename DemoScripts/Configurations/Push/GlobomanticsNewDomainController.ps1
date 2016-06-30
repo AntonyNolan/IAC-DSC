@@ -30,12 +30,12 @@ Configuration NewDomainController {
 $ConfigData = @{             
     AllNodes = @(             
         @{             
-            Nodename = 'DC3'          
+            Nodename = 'DC4'          
             Role = "NewDomainController"
-            DomainName = "wef.com"
-            Certificatefile = 'c:\certs\DC3.cer'
+            DomainName = "globomantics.com"
+            Certificatefile = 'c:\certs\DC4.cer'
             PSDscAllowDomainUser = $true
-            Credential = (Get-Credential -UserName 'wef\administrator' -message 'Enter admin pwd')            
+            Credential = (Get-Credential -UserName 'globomantics\duffneyj' -message 'Enter admin pwd')            
         }
                       
     )             
@@ -45,4 +45,4 @@ NewDomainController -ConfigurationData $ConfigData `
    -safemodeAdministratorCred (Get-Credential -UserName '(Password Only)' `
     -Message "New Domain Safe Mode Administrator Password") -outputpath c:\dsc\NewDomainController
 
-Start-DscConfiguration -ComputerName DC3 -wait -force -Verbose -Path c:\dsc\NewDomainController
+Start-DscConfiguration -ComputerName DC4 -wait -force -Verbose -Path c:\dsc\NewDomainController
