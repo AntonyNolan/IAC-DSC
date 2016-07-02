@@ -40,7 +40,7 @@ configuration GlobomanticsCollector {
             Ensure = "Present"
             LogFile = 'ForwardedEvents'
             SubscriptionType = 'CollectorInitiated'
-            Address = (Get-ADGroupMember 'Domain Controllers' | % {Get-ADComputer -Identity $_.SID}).DNSHostName
+            Address = (Get-ADDomainController -Filter *).HostName
             DependsOn = "[xWEFCollector]Enabled","[WindowsFeature]RSATADPowerShell"
             Query = @('Security:*')
         }      
