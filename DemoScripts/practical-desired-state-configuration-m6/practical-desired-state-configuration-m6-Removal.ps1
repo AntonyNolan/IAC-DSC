@@ -4,7 +4,8 @@ Remove-GPO -Name EventForwarding -Confirm:$false -Verbose
 
 $cim = New-CimSession -ComputerName Collector
 
-Invoke-Command -ComputerName $cim.ComputerName -ScriptBlock {Remove-Item "c:\Program Files\WindowsPowerShell\Modules\xWindowsEventForwarding" -Recurse -Confirm:$false}
+Invoke-Command -ComputerName $cim.ComputerName -ScriptBlock {Remove-Item "c:\Program Files\WindowsPowerShell\Modules\xWindowsEventForwarding" -Recurse -Confirm:$false -Force}
+Invoke-Command -ComputerName $cim.ComputerName -ScriptBlock {Remove-Item "c:\Program Files\WindowsPowerShell\Modules\xNetworking" -Recurse -Confirm:$false -Force}
 
 Remove-DscConfigurationDocument -CimSession $cim -Stage Current,Pending,Previous -Verbose
 

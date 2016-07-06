@@ -11,6 +11,22 @@ configuration GlobomanticsCollector {
                 Name = 'RSAT-AD-PowerShell'
         }
 
+        xWEFCollector Enabled {
+            Ensure = "Present"
+            Name = "Enabled"
+        }
+
+        xWEFSubscription ADSecurity
+        {
+            SubscriptionID = "ADSecurity"
+            Ensure = "Present"
+            LogFile = 'ForwardedEvents'
+            SubscriptionType = 'CollectorInitiated'
+            Address = (Get-ADDomainController -Filter *).HostName
+            Query = @('Security:*')            
+            DependsOn = "[xWEFCollector]Enabled","[WindowsFeature]RSATADPowerShell"
+        }
+
         xFirewall RemoteLogManagement {
             Name = 'EventLog-Forwarding'
             Group = 'Remote Event Log Management'
@@ -29,21 +45,7 @@ configuration GlobomanticsCollector {
             Profile = 'Domain'
         }
 
-        xWEFCollector Enabled {
-            Ensure = "Present"
-            Name = "Enabled"
-        }
-
-        xWEFSubscription ADSecurity
-        {
-            SubscriptionID = "ADSecurity"
-            Ensure = "Present"
-            LogFile = 'ForwardedEvents'
-            SubscriptionType = 'CollectorInitiated'
-            Address = (Get-ADDomainController -Filter *).HostName
-            DependsOn = "[xWEFCollector]Enabled","[WindowsFeature]RSATADPowerShell"
-            Query = @('Security:*')
-        }      
+      
     }
 }
 
@@ -51,13 +53,24 @@ $ConfigData = @{
     AllNodes = @(             
         @{             
             NodeName = 'Collector'          
-            PSDscAllowDomainUser = $true
         }                
     )             
 }  
 
+#Create Cim Session
 $cim = New-CimSession -ComputerName Collector
 
+
+#Copy DSC Resources to Collector
+$Modules = 'xWindowsEventForwarding','xNetworking'
+
+Publish-DSCResourcePush -Module $Modules `
+-ComputerName $cim.ComputerName
+
+Invoke-Command -ComputerName $cim.ComputerName `
+-ScriptBlock {Get-Module $Using:Modules -ListAvailable} -ArgumentList $Modules
+
+#Generate & Deploy Collector DSC Config
 GlobomanticsCollector -ConfigurationData $ConfigData -OutputPath c:\DSC\
 
 Start-DscConfiguration -CimSession $cim -path c:\DSC\ -Wait -Force -Verbose

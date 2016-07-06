@@ -4,6 +4,11 @@
 #Reapply Collector DSC Configuration
 Start-DscConfiguration -Wait -Force -Path c:\DSC\ -Verbose
 
+#View Event Sources
+Invoke-Command -ComputerName Collector -ScriptBlock {cmd /c wecutil gs adsecurity}
+
+#region UpdateEventSources
+
 #Method 1: Nuke
 $Subs = cmd /c wecutil es
 if ($Subs -contains 'ADSecurity'){
@@ -21,8 +26,10 @@ if ((Compare-Object $DCs $EventSources).length -ne 0){
     cmd /c wecutil ds ADSecurity
 }
 
-#Method 3 
+
+#Dynamic Collector DSC Config
 psEdit C:\GitHub\IAC-DSC\DemoScripts\Configurations\Push\GlobomanticsDynamicCollector.ps1
 
 #Verify Subscription exists
-cmd /c wecutil gs adsecurity
+Invoke-Command -ComputerName Collector -ScriptBlock {cmd /c wecutil gs adsecurity}
+#endregion

@@ -28,7 +28,7 @@ $ComputerName = 'DC4'
 
 $cert = Invoke-Command -scriptblock { 
     Get-ChildItem Cert:\LocalMachine\my | 
-    Where-Object {$_.Issuer -eq 'CN=GLOBOMANTICS-CERT-CA, DC=GLOBOMANTICS, DC=COM'}
+    Where-Object {$_.Subject -eq 'CN=DC4.GLOBOMANTICS.COM'}
     } -ComputerName $ComputerName
 
 $cim = New-CimSession -ComputerName $ComputerName
