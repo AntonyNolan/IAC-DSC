@@ -95,7 +95,7 @@ $cert =
      Get-ChildItem Cert:\LocalMachine\my | 
      Where-Object {$_.FriendlyName -eq 'SelfSigned'}
 
-
+if (-not (Test-Path c:\certs)){mkdir -Path c:\certs}
 Export-Certificate -Cert $cert -FilePath C:\Certs\DC1.cer -Force
  
 
