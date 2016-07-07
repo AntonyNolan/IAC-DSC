@@ -36,7 +36,7 @@ Configuration DomainController {
             AddressFamily = 'IPv4'
             InterfaceAlias = $Node.Ethernet
             Address = $Node.DefaultGateway
-            DependsOn = '[xIPAddress]NewIpAddress'
+            DependsOn = '[xIPAddress]IpAddress'
 
         }
 
@@ -97,6 +97,7 @@ $cert =
 
 
 Export-Certificate -Cert $cert -FilePath C:\Certs\DC1.cer -Force
+ 
 
 $ConfigData = @{             
     AllNodes = @(             
@@ -117,9 +118,6 @@ $ConfigData = @{
     )             
 } 
 
-#Create SelfSigned Certificate & Export
-#. "C:\GitHub\IAC-DSC\Helper-Functions\New-SelfSignedCertificateEx.ps1"
-
 # Generate Configuration
 DomainController -ConfigurationData $ConfigData `
 -safemodeAdministratorCred (Get-Credential -UserName '(Password Only)' `
@@ -127,5 +125,6 @@ DomainController -ConfigurationData $ConfigData `
 -domainCred (Get-Credential -UserName globomantics\administrator `
 -Message "New Domain Admin Credential") -OutputPath c:\dsc\NewDomain
 
+ 
 Set-DscLocalConfigurationManager -Path c:\dsc\NewDomain -Verbose -Force
-Start-DscConfiguration -wait -force -Verbose -Path c:\dsc\NewDomain
+Start-DscConfiguration -wait -force -Verbose -Path c:\dsc\NewDomain\
