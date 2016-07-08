@@ -25,6 +25,16 @@ Configuration ADUser {
             DomainName = $Node.DomainName
             DomainAdministratorCredential = $Node.DomainAdministratorCredential
             DependsOn = '[WindowsFeature]ADDSTools'
+        }
+
+        xADGroup Operations {
+            GroupName = 'Operations'
+            Category = 'Security'
+            GroupScope = 'Global'
+            Description = 'Role based group for Operations team members'
+            Ensure = 'Present'
+            Members = 'duffneyj'
+
         }                                                 
     }
 }
