@@ -1,4 +1,4 @@
-Configuration ADUser {
+Configuration ADGroup {
     
     param (
         [string]$NodeName   
@@ -54,8 +54,9 @@ $ConfigData = @{
 } 
 
 # Generate Configuration
-ADUser -ConfigurationData $ConfigData -OutputPath c:\dsc\ADUser
+ADGroup -ConfigurationData $ConfigData -OutputPath c:\dsc\ADGroup
 
-Start-DscConfiguration -wait -force -Verbose -Path c:\dsc\ADUser
+Start-DscConfiguration -wait -force -Verbose -Path c:\dsc\ADGroup
 
-Get-ADUser -Identity duffneyj -Properties Title
+Get-ADGroup -Identity Operations
+Get-ADGroupMember -Identity Operations
