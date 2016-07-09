@@ -1,4 +1,4 @@
-Configuration DomainController {
+Configuration NewDomain {
     
     param (
         [string]$NodeName,
@@ -12,7 +12,7 @@ Configuration DomainController {
     Import-DscResource -ModuleName xActiveDirectory
     Import-DscResource -ModuleName xNetworking
     
-    Node $AllNodes.Where{$_.Role -eq "DomainController"}.Nodename  {
+    Node $AllNodes.Where{$_.Role -eq "FirstDomainController"}.Nodename  {
         
         LocalConfigurationManager            
         {            
@@ -103,7 +103,7 @@ $ConfigData = @{
     AllNodes = @(             
         @{             
             Nodename = 'DC1'          
-            Role = "DomainController"
+            Role = "FirstDomainController"
             DomainName = "globomantics.com"                         
             IPAddress = '192.168.2.10'
             DefaultGateway = '192.168.2.1'
@@ -119,7 +119,7 @@ $ConfigData = @{
 } 
 
 # Generate Configuration
-DomainController -ConfigurationData $ConfigData `
+NewDomain -ConfigurationData $ConfigData `
 -safemodeAdministratorCred (Get-Credential -UserName '(Password Only)' `
 -Message "New Domain Safe Mode Administrator Password") `
 -domainCred (Get-Credential -UserName globomantics\administrator `
