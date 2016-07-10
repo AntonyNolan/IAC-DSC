@@ -4,7 +4,7 @@ Configuration ADUser {
         [string]$NodeName   
         )
     
-    Import-DscResource –ModuleName PSDesiredStateConfiguration
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
     Import-DscResource -ModuleName xActiveDirectory
     
     Node $AllNodes.Nodename  {           

@@ -1,14 +1,14 @@
 Configuration NewDomain {
-    
+
     param (
         [string]$NodeName,
         [Parameter(Mandatory)]             
-        [pscredential]$safemodeAdministratorCred,             
+        [pscredential]$SafeModeAdministratorPassword,             
         [Parameter(Mandatory)]            
-        [pscredential]$domainCred        
+        [pscredential]$DomainAdministratorCredential        
         )
     
-    Import-DscResource –ModuleName PSDesiredStateConfiguration
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
     Import-DscResource -ModuleName xActiveDirectory
     Import-DscResource -ModuleName xNetworking
     
@@ -68,11 +68,11 @@ Configuration NewDomain {
              
         }
         
-        xADDomain FirstDS             
+        xADDomain FirstDS            
         {             
             DomainName = $Node.DomainName             
-            DomainAdministratorCredential = $domainCred             
-            SafemodeAdministratorPassword = $safemodeAdministratorCred            
+            DomainAdministratorCredential = $DomainAdministratorCredential             
+            SafemodeAdministratorPassword = $SafeModeAdministratorPassword            
             DatabasePath = 'C:\NTDS'            
             LogPath = 'C:\NTDS'            
             DependsOn = "[WindowsFeature]ADDSInstall","[File]ADFiles"            
@@ -89,11 +89,12 @@ $Params = @{
     FriendlyName = 'SelfSigned'
 }
 
+. c:\scripts\New-SelfSignedCertificateEX.ps1
+
 New-SelfSignedCertificateEx @Params
 
-$cert =
-     Get-ChildItem Cert:\LocalMachine\my | 
-     Where-Object {$_.FriendlyName -eq 'SelfSigned'}
+$cert = Get-ChildItem Cert:\LocalMachine\my | 
+Where-Object {$_.FriendlyName -eq 'SelfSigned'}
 
 if (-not (Test-Path c:\certs)){mkdir -Path c:\certs}
 Export-Certificate -Cert $cert -FilePath C:\Certs\DC1.cer -Force
@@ -108,21 +109,21 @@ $ConfigData = @{
             IPAddress = '192.168.2.10'
             DefaultGateway = '192.168.2.1'
             DNSIPAddress = '192.168.2.10','127.0.0.1'
-            Ethernet = (Get-NetAdapter).Name
-            Thumbprint = (Get-ChildItem Cert:\LocalMachine\my | Where-Object {$_.FriendlyName -eq 'SelfSigned'}).Thumbprint
+            Ethernet = (Get-NetAdapter | where Name -EQ 'Internal').Name
+            Thumbprint = (Get-ChildItem Cert:\LocalMachine\my `
+            | Where-Object {$_.FriendlyName -eq 'SelfSigned'}).Thumbprint
             Certificatefile = 'c:\certs\DC1.cer'
-            PsDscAllowPlainTextPassword = $true
             PSDscAllowDomainUser = $true     
         }
                       
     )             
-} 
+}
 
 # Generate Configuration
 NewDomain -ConfigurationData $ConfigData `
--safemodeAdministratorCred (Get-Credential -UserName '(Password Only)' `
+-SafeModeAdministratorPassword (Get-Credential -UserName '(Password Only)' `
 -Message "New Domain Safe Mode Administrator Password") `
--domainCred (Get-Credential -UserName globomantics\administrator `
+-DomainAdministratorCredential (Get-Credential -UserName globomantics\administrator `
 -Message "New Domain Admin Credential") -OutputPath c:\dsc\NewDomain
 
  
