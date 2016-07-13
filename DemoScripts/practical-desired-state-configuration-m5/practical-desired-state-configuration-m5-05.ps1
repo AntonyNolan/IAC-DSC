@@ -25,9 +25,7 @@ $ConfigData = @{
     AllNodes = @(             
         @{             
             Nodename = 'DC1'
-            DomainName = 'globomantics.com'          
-        }
-                      
+        }                 
     )             
 } 
 
