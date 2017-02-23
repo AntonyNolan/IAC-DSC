@@ -32,7 +32,7 @@
             $params =@{
                 Path = (Get-Module $Item -ListAvailable).ModuleBase
                 Destination = "$env:SystemDrive\Program Files\WindowsPowerShell\Modules\$Item"
-                ToSession = (New-PSSession -ComputerName Collector)
+                ToSession = (New-PSSession -ComputerName $ComputerName)
                 Force = $true
                 Recurse = $true
                 Verbose = $true
